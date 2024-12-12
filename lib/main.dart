@@ -41,27 +41,44 @@ class _CustomTabBarState extends State<CustomTabBar>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        backgroundColor: Color(0xFF391D44),
+      ),
+      backgroundColor: Color(0xFF391D44),
       body: Column(
         children: [
           TabBar(
             controller: tabController,
             tabs: title,
+            overlayColor: const WidgetStatePropertyAll(Colors.transparent),
             indicatorSize: TabBarIndicatorSize.tab,
             indicator: _CustomIndicator(),
+            unselectedLabelColor: Colors.white,
+            labelColor: Color(0xFF391D44),
             dividerColor: Colors.transparent,
             labelPadding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                ),
+              vertical: 14,
+            ),
           ),
-          const SizedBox(height: 20,),
           Expanded(
-            child: TabBarView(
-              controller: tabController,
-              children: const [
-                Placeholder(),
-                Placeholder(),
-              ],
+            child: AnimatedBuilder(
+              animation: tabController,
+              builder: (context, child) {
+                return ClipRRect(
+                  borderRadius:
+                      const BorderRadius.only(topRight: Radius.circular(24)),
+                  child: ColoredBox(
+                    color: Colors.white,
+                    child: TabBarView(
+                      controller: tabController,
+                      children: const [
+                        Column(),
+                        Column(),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -83,31 +100,37 @@ class _IndicatorPainter extends BoxPainter {
   void paint(Canvas canvas, Offset offset, ImageConfiguration imageConfig) {
     final boxSize = imageConfig.size!;
 
-    double borderRadius = 22;
+    double borderRadius = 24;
     Radius r = Radius.circular(borderRadius);
+    Offset i = offset + Offset(0, imageConfig.size!.height - boxSize.height);
 
     final boxPaint = Paint()
-      ..color = Colors.black26
+      ..color = Colors.white
       ..style = PaintingStyle.fill;
 
     final path = Path()
-    ..moveTo(0, borderRadius)
-    ..arcToPoint(Offset(borderRadius, 0),radius: r)
-    ..lineTo((boxSize.width - borderRadius), 0)
-    ..cubicTo((boxSize.width + borderRadius), 0, (boxSize.width - borderRadius), boxSize.height, (boxSize.width + borderRadius), boxSize.height,)
-    ..lineTo(0, boxSize.height)
-    ..lineTo(0, 22);
-
-    final rRect = RRect.fromRectAndRadius(
-      Rect.fromPoints(
-        offset + Offset(0, imageConfig.size!.height - boxSize.height),
-        Offset(
-          boxSize.width + offset.dx,
-          imageConfig.size!.height,
-        ),
-      ),
-      const Radius.circular(12),
-    );
+      ..moveTo((i.dx - borderRadius), (i.dy + boxSize.height))
+      ..cubicTo(
+        (i.dx + borderRadius), //x1
+        (i.dy + boxSize.height - 6), //y1
+        (i.dx - borderRadius), //x2
+        (i.dy + 6), //y2
+        (i.dx + borderRadius), //x3
+        i.dy, //y3
+      )
+      ..lineTo((i.dx + boxSize.width - borderRadius), i.dy)
+      ..cubicTo(
+        (i.dx + boxSize.width + borderRadius), // x1
+        (i.dy + 6), // y1
+        (i.dx + boxSize.width - borderRadius), // x2
+        (i.dy + boxSize.height - 6), // y2
+        (i.dx + boxSize.width + borderRadius), // x3
+        (i.dy + boxSize.height), // y3
+      )
+      ..lineTo(
+        i.dx,
+        (i.dy + boxSize.height),
+      );
 
     // canvas.drawRRect(rRect, boxPaint);
     canvas.drawPath(path, boxPaint);
