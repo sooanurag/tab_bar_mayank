@@ -26,6 +26,8 @@ class CustomTabBar extends StatefulWidget {
 class _CustomTabBarState extends State<CustomTabBar>
     with TickerProviderStateMixin {
   late TabController tabController;
+  late Animation<double?> rightCorner;
+  late Animation<double?> leftCorner;
 
   final title = [const Text('Data Plan'), const Text('eSIMs')];
 
@@ -35,6 +37,10 @@ class _CustomTabBarState extends State<CustomTabBar>
       length: title.length,
       vsync: this,
     );
+    rightCorner =
+        Tween<double>(begin: 24, end: 0).animate(tabController.animation!);
+    leftCorner =
+        Tween<double>(begin: 0, end: 24).animate(tabController.animation!);
     super.initState();
   }
 
@@ -62,11 +68,13 @@ class _CustomTabBarState extends State<CustomTabBar>
           ),
           Expanded(
             child: AnimatedBuilder(
-              animation: tabController,
+              animation: rightCorner,
               builder: (context, child) {
                 return ClipRRect(
-                  borderRadius:
-                      const BorderRadius.only(topRight: Radius.circular(24)),
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(rightCorner.value ?? 0),
+                    topLeft: Radius.circular(leftCorner.value ?? 0),
+                  ),
                   child: ColoredBox(
                     color: Colors.white,
                     child: TabBarView(
@@ -101,7 +109,6 @@ class _IndicatorPainter extends BoxPainter {
     final boxSize = imageConfig.size!;
 
     double borderRadius = 24;
-    Radius r = Radius.circular(borderRadius);
     Offset i = offset + Offset(0, imageConfig.size!.height - boxSize.height);
 
     final boxPaint = Paint()
@@ -118,7 +125,10 @@ class _IndicatorPainter extends BoxPainter {
         (i.dx + borderRadius), //x3
         i.dy, //y3
       )
-      ..lineTo((i.dx + boxSize.width - borderRadius), i.dy)
+      ..lineTo(
+        (i.dx + boxSize.width - borderRadius),
+        i.dy,
+      )
       ..cubicTo(
         (i.dx + boxSize.width + borderRadius), // x1
         (i.dy + 6), // y1
